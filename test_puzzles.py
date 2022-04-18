@@ -43,7 +43,7 @@
 # ## Rules
 
 # 1. Each can be solved in 1 line (<80 columns) of code.
-# 2. You are allowed  @, *, ==, <=, `shape`, fancy indexing (e.g. `a[:j], a[:, None], a[arange(10)]`), and previous puzzle functions.
+# 2. You are allowed  @, *, ==, <=, `shape`, indexing, and previous puzzle functions.
 # 3. Additionally you are allowed these two functions:
 
 # +
@@ -254,7 +254,8 @@ def ones_spec(out):
 
 # +
 def ones(i: int) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return where(arange(i) > -1, 1, 0) # arange(i) / arange(i)
+    # assert False, 'Not implemented yet.'
 
 
 test_ones = make_test(ones, ones_spec, add_sizes=["i"])
@@ -275,7 +276,8 @@ def sum_spec(a, out):
 
 # +
 def sum(a: TT["i"]) -> TT[1]:
-    assert False, 'Not implemented yet.'
+    return (a[None, :] @ ones(a.size(-1))[:, None])[0, 0]
+    # assert False, 'Not implemented yet.'
 
 
 test_sum = make_test(sum, sum_spec)
@@ -296,7 +298,8 @@ def outer_spec(a, b, out):
 
 # +
 def outer(a: TT["i"], b: TT["j"]) -> TT["i", "j"]:
-    assert False, 'Not implemented yet.'
+    return a[:, None] * b
+    # assert False, 'Not implemented yet.'
 
 
 test_outer = make_test(outer, outer_spec)
@@ -316,7 +319,8 @@ def diag_spec(a, out):
 
 # +
 def diag(a: TT["i", "i"]) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return a[arange(a.size(-1)), arange(a.size(-1))]
+    # assert False, 'Not implemented yet.'
 
 
 test_diag = make_test(diag, diag_spec)
@@ -335,7 +339,8 @@ def eye_spec(out):
 
 # +
 def eye(j: int) -> TT["j", "j"]:
-    assert False, 'Not implemented yet.'
+    return where(arange(j)[:, None] == arange(j)[None, :], 1, 0)
+    # assert False, 'Not implemented yet.'
 
 
 # +
@@ -359,7 +364,8 @@ def triu_spec(out):
 
 # +
 def triu(j: int) -> TT["j", "j"]:
-    assert False, 'Not implemented yet.'
+    return where(arange(j)[:, None] <= arange(j)[None, :], 1, 0)
+    # assert False, 'Not implemented yet.'
 
 
 test_triu = make_test(triu, triu_spec, add_sizes=["j"])
@@ -380,7 +386,8 @@ def cumsum_spec(a, out):
 
 # +
 def cumsum(a: TT["i"]) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return ((1-triu(a.size(-1)))+eye(a.size(-1))) @ a
+    # assert False, 'Not implemented yet.'
 
 
 test_cumsum = make_test(cumsum, cumsum_spec)
@@ -401,7 +408,8 @@ def diff_spec(a, out):
 
 # +
 def diff(a: TT["i"], i: int) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return (eye(i)-where(arange(i)[:, None]==arange(i)+1, 1, 0)) @ a
+    # assert False, 'Not implemented yet.'
 
 
 test_diff = make_test(diff, diff_spec, add_sizes=["i"])
@@ -421,7 +429,8 @@ def vstack_spec(a, b, out):
 
 # +
 def vstack(a: TT["i"], b: TT["i"]) -> TT[2, "i"]:
-    assert False, 'Not implemented yet.'
+    return where(arange(2)[:, None]*ones(a.size(-1)) == 0, a, b)
+    # assert False, 'Not implemented yet.'
 
 
 test_vstack = make_test(vstack, vstack_spec)
@@ -443,7 +452,8 @@ def roll_spec(a, out):
 
 # +
 def roll(a: TT["i"], i: int) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return (where(arange(i)[:, None] == (arange(i)[None, :]-1+i)%i, 1, 0) @ a[:, None])[:, 0]
+    # assert False, 'Not implemented yet.'
 
 
 test_roll = make_test(roll, roll_spec, add_sizes=["i"])
@@ -462,7 +472,8 @@ def flip_spec(a, out):
 
 # +
 def flip(a: TT["i"], i: int) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return (where(arange(i)[:, None] + arange(i)[None, :] == i-1, 1, 0) @ a[:, None])[:, 0]
+    # assert False, 'Not implemented yet.'
 
 
 test_flip = make_test(flip, flip_spec, add_sizes=["i"])
@@ -485,7 +496,8 @@ def compress_spec(g, v, out):
 
 # +
 def compress(g: TT["i", bool], v: TT["i"], i:int) -> TT["i"]:
-    assert False, 'Not implemented yet.'
+    return ((eye(i)*g) @ v[:, None])[:, 0]
+    # assert False, 'Not implemented yet.'
 
 
 test_compress = make_test(compress, compress_spec, add_sizes=["i"])
@@ -506,7 +518,9 @@ def pad_to_spec(a, out):
 
 
 def pad_to(a: TT["i"], i: int, j: int) -> TT["j"]:
-    assert False, 'Not implemented yet.'
+    # return where(arange(j) < i, a, 0)
+    return (where(arange(j)[:, None] == arange(i)[None, :], 1, 0) @ a[:, None])[:, 0]
+    # assert False, 'Not implemented yet.'
 
 
 test_pad_to = make_test(pad_to, pad_to_spec, add_sizes=["i", "j"])
@@ -531,7 +545,8 @@ def sequence_mask_spec(values, length, out):
 
 # +
 def sequence_mask(values: TT["i", "j"], length: TT["i", int]) -> TT["i", "j"]:
-    assert False, 'Not implemented yet.'
+    return where(arange(values.size(-1))[None, :] < length[:, None], values, 0)
+    # assert False, 'Not implemented yet.'
 
 
 def constraint_set_length(d):
@@ -560,7 +575,8 @@ def bincount_spec(a, out):
 
 # +
 def bincount(a: TT["i"], j: int) -> TT["j"]:
-    assert False, 'Not implemented yet.'
+    return (where(a[None, :] == arange(j)[:, None], 1, 0) @ ones(a.size(-1))[:, None])[:, 0]
+    # assert False, 'Not implemented yet.'
 
 
 def constraint_set_max(d):
@@ -588,7 +604,8 @@ def scatter_add_spec(values, link, out):
 
 # +
 def scatter_add(values: TT["i"], link: TT["j"], j: int) -> TT["j"]:
-    assert False, 'Not implemented yet.'
+    return (where(link[:, None] == arange(values.size(-1))[None, :], 1, 0) @ values[:, None])[:, 0]
+    # assert False, 'Not implemented yet.'
 
 
 def constraint_set_max(d):
