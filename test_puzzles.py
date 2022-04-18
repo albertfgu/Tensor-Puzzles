@@ -496,7 +496,8 @@ def compress_spec(g, v, out):
 
 # +
 def compress(g: TT["i", bool], v: TT["i"], i:int) -> TT["i"]:
-    return ((eye(i)*g) @ v[:, None])[:, 0]
+    return (where((cumsum(g*1)*g-1)[None, :] == arange(i)[:, None], 1, 0) @ v[:, None])[:, 0]
+    # return ((eye(i)*g) @ v[:, None])[:, 0]
     # assert False, 'Not implemented yet.'
 
 
